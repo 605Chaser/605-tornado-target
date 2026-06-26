@@ -11,106 +11,281 @@
   <link rel="manifest" href="/manifest.json">
   <style>
     :root {
-      --bg: #0a0a0b;
-      --surface: #141416;
-      --card: #1c1c1f;
-      --border: rgba(255,255,255,0.08);
-      --border-strong: rgba(255,255,255,0.16);
-      --text: #f0f0f0;
-      --text-2: #a0a0a8;
-      --text-3: #606068;
-      --red: #cc2200;
-      --radius: 12px;
+      --bg:       #080809;
+      --surf1:    #111113;
+      --surf2:    #1a1a1e;
+      --surf3:    #222227;
+      --border:   rgba(255,255,255,0.07);
+      --borderHi: rgba(255,255,255,0.14);
+      --text:     #efefef;
+      --text2:    #9898a4;
+      --text3:    #505058;
+      --red:      #cc2200;
+      --redDim:   rgba(204,34,0,0.15);
+      --amber:    #e07800;
+      --amberDim: rgba(224,120,0,0.15);
+      --green:    #3a9400;
+      --greenDim: rgba(58,148,0,0.15);
+      --yellow:   #aa9400;
+      --yellowDim:rgba(170,148,0,0.12);
+      --blue:     #2266dd;
+      --r: 10px;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: env(safe-area-inset-bottom); }
-    .header { position: sticky; top: 0; z-index: 10; background: rgba(10,10,11,0.92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 0.5px solid var(--border); padding: max(env(safe-area-inset-top), 12px) 16px 12px; }
-    .header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-    .brand { display: flex; align-items: center; gap: 10px; }
-    .brand-mark { width: 34px; height: 34px; border-radius: 9px; background: var(--red); display: flex; align-items: center; justify-content: center; }
-    .brand-mark svg { width: 18px; height: 18px; fill: #fff; }
-    .brand-name { font-size: 15px; font-weight: 600; color: var(--text); }
-    .brand-sub { font-size: 11px; color: var(--text-3); letter-spacing: 0.04em; text-transform: uppercase; }
-    .day-toggle { display: flex; background: var(--surface); border-radius: 8px; padding: 2px; border: 0.5px solid var(--border); }
-    .day-btn { padding: 5px 16px; font-size: 13px; font-weight: 500; border-radius: 6px; border: none; background: transparent; color: var(--text-3); cursor: pointer; }
-    .day-btn.active { background: var(--card); color: var(--text); border: 0.5px solid var(--border-strong); }
-    .loc-row { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-2); }
-    .loc-val { font-weight: 500; color: var(--text); }
-    .refresh-btn { margin-left: auto; background: none; border: none; color: var(--text-3); cursor: pointer; padding: 4px; font-size: 18px; }
-    .status-wrap { padding: 10px 16px 0; }
-    .status-pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; }
-    .status-pill.loading { background: rgba(153,136,0,0.15); color: #ddbb00; }
-    .status-pill.live { background: rgba(58,138,0,0.15); color: #55cc00; }
-    .status-pill.no-risk { background: var(--surface); color: var(--text-3); border: 0.5px solid var(--border); }
-    .status-pill.error { background: rgba(204,34,0,0.15); color: #ff5533; }
-    .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-    .dot.pulse { animation: dotpulse 1.4s infinite; }
-    @keyframes dotpulse { 0%,100%{opacity:1} 50%{opacity:0.25} }
-    .spc-card { margin: 12px 16px 0; background: var(--surface); border-radius: var(--radius); border: 0.5px solid var(--border); padding: 10px 12px; }
-    .spc-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
-    .spc-eyebrow { font-size: 10px; font-weight: 600; color: var(--text-3); letter-spacing: 0.06em; text-transform: uppercase; }
-    .risk-pill { padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
-    .risk-2 { background: rgba(200,166,0,0.2); color: #ddbb00; }
-    .risk-5 { background: rgba(220,100,0,0.2); color: #ff7722; }
-    .risk-10 { background: rgba(220,0,0,0.2); color: #ff3311; }
-    .risk-15 { background: rgba(180,0,220,0.2); color: #cc44ff; }
-    .spc-zones { font-size: 12px; color: var(--text-2); line-height: 1.5; }
-    .run-tag { margin: 8px 16px 0; font-size: 11px; color: var(--text-3); }
-    .section-lbl { padding: 14px 16px 6px; font-size: 11px; font-weight: 600; color: var(--text-3); letter-spacing: 0.06em; text-transform: uppercase; }
-    .target-card { margin: 0 16px 10px; background: var(--card); border-radius: var(--radius); border: 0.5px solid var(--border); overflow: hidden; cursor: pointer; }
-    .target-card:active { opacity: 0.85; }
-    .target-card.top { border-color: var(--red); border-width: 1px; }
-    .card-head { padding: 12px 14px 8px; display: flex; align-items: flex-start; justify-content: space-between; }
-    .card-rank { font-size: 10px; font-weight: 600; color: var(--text-3); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 2px; }
-    .card-rank.top { color: var(--red); }
-    .card-county { font-size: 17px; font-weight: 600; color: var(--text); letter-spacing: -0.3px; }
-    .card-state { font-size: 12px; color: var(--text-2); margin-top: 1px; }
-    .score-ring { width: 46px; height: 46px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1.5px solid; flex-shrink: 0; }
-    .score-ring.high { border-color: #ff4422; color: #ff4422; }
-    .score-ring.mod { border-color: #ff8833; color: #ff8833; }
-    .score-ring.marg { border-color: #ddbb00; color: #ddbb00; }
-    .score-n { font-size: 16px; font-weight: 600; line-height: 1; }
-    .score-l { font-size: 8px; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; opacity: 0.7; }
-    .card-window { padding: 0 14px 8px; font-size: 12px; color: var(--text-2); }
-    .window-strong { color: var(--text); font-weight: 500; }
-    .params { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; padding: 0 14px 12px; }
-    .pbadge { padding: 6px 8px; border-radius: 8px; }
-    .pname { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px; }
-    .pval { font-size: 13px; font-weight: 600; line-height: 1; }
-    .ptier { font-size: 9px; margin-top: 3px; opacity: 0.75; }
-    .t-sig { background: rgba(200,0,0,0.15); }
-    .t-sig .pname,.t-sig .ptier { color: #ff6655; }
-    .t-sig .pval { color: #ff3322; }
-    .t-vs { background: rgba(200,100,0,0.15); }
-    .t-vs .pname,.t-vs .ptier { color: #ffaa55; }
-    .t-vs .pval { color: #ff8800; }
-    .t-str { background: rgba(60,130,0,0.15); }
-    .t-str .pname,.t-str .ptier { color: #88cc44; }
-    .t-str .pval { color: #66aa00; }
-    .t-marg { background: rgba(150,130,0,0.12); }
-    .t-marg .pname,.t-marg .ptier { color: #ccbb44; }
-    .t-marg .pval { color: #aaaa00; }
-    .t-weak { background: rgba(255,255,255,0.04); }
-    .t-weak .pname,.t-weak .pval,.t-weak .ptier { color: var(--text-3); }
-    .card-foot { border-top: 0.5px solid var(--border); padding: 8px 14px; display: flex; align-items: center; justify-content: space-between; }
-    .spc-inline { font-size: 11px; color: var(--text-3); }
-    .spc-inline b { color: var(--text-2); }
-    .chase-link { font-size: 11px; color: #4488ff; }
-    .empty { margin: 32px 16px; padding: 32px 16px; text-align: center; background: var(--surface); border-radius: var(--radius); border: 0.5px solid var(--border); }
-    .empty-icon { font-size: 36px; margin-bottom: 12px; }
-    .empty-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
-    .empty-body { font-size: 13px; color: var(--text-2); line-height: 1.55; }
-    .skel { background: var(--surface); border-radius: 10px; margin: 12px 16px 8px; animation: skelflash 1.2s ease-in-out infinite; }
-    @keyframes skelflash { 0%,100%{opacity:0.5} 50%{opacity:1} }
-    .disc { margin: 4px 16px 24px; padding: 10px 12px; background: var(--surface); border-radius: 8px; border-left: 2px solid var(--border-strong); }
-    .disc p { font-size: 10px; color: var(--text-3); line-height: 1.6; }
+    *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+    html{scroll-behavior:smooth}
+    body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:calc(env(safe-area-inset-bottom) + 80px)}
+
+    /* ── HEADER ── */
+    .hdr{
+      position:sticky;top:0;z-index:100;
+      background:rgba(8,8,9,0.88);
+      backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+      border-bottom:0.5px solid var(--border);
+      padding:max(env(safe-area-inset-top),14px) 16px 12px;
+    }
+    .hdr-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+    .brand{display:flex;align-items:center;gap:10px}
+    .logo{width:36px;height:36px;border-radius:10px;background:var(--red);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .logo svg{width:20px;height:20px;fill:#fff}
+    .brand-name{font-size:15px;font-weight:700;letter-spacing:-0.3px}
+    .brand-sub{font-size:10px;color:var(--text3);letter-spacing:0.08em;text-transform:uppercase;margin-top:1px}
+    .hdr-right{display:flex;align-items:center;gap:8px}
+    .help-btn{
+      width:30px;height:30px;border-radius:50%;
+      background:var(--surf2);border:0.5px solid var(--border);
+      display:flex;align-items:center;justify-content:center;
+      font-size:14px;cursor:pointer;color:var(--text2);
+      transition:background 0.15s;
+    }
+    .help-btn:active{background:var(--surf3)}
+    .day-toggle{display:flex;background:var(--surf1);border-radius:8px;padding:2px;border:0.5px solid var(--border)}
+    .day-btn{padding:5px 14px;font-size:13px;font-weight:500;border-radius:6px;border:none;background:transparent;color:var(--text3);cursor:pointer;transition:all 0.15s}
+    .day-btn.active{background:var(--surf3);color:var(--text);border:0.5px solid var(--borderHi)}
+    .loc-row{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)}
+    .loc-dot{width:7px;height:7px;border-radius:50%;background:var(--red);flex-shrink:0}
+    .loc-val{font-weight:500;color:var(--text)}
+    .loc-dim{color:var(--text3)}
+    .spin-btn{margin-left:auto;background:none;border:none;color:var(--text3);cursor:pointer;padding:4px;font-size:18px;line-height:1;transition:transform 0.3s}
+    .spin-btn.spinning{animation:spin 1s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* ── STATUS STRIP ── */
+    .status-wrap{padding:10px 16px 0}
+    .status-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:20px;font-size:12px;font-weight:500;transition:all 0.2s}
+    .status-pill.loading{background:var(--yellowDim);color:#ddbb00}
+    .status-pill.live{background:var(--greenDim);color:#55cc00}
+    .status-pill.no-risk{background:var(--surf1);color:var(--text3);border:0.5px solid var(--border)}
+    .status-pill.error{background:var(--redDim);color:#ff5533}
+    .sdot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
+    .sdot.pulse{animation:sdotpulse 1.4s infinite}
+    @keyframes sdotpulse{0%,100%{opacity:1}50%{opacity:0.2}}
+
+    /* ── SPC BANNER ── */
+    .spc-banner{
+      margin:12px 16px 0;
+      background:var(--surf1);border-radius:var(--r);
+      border:0.5px solid var(--border);
+      padding:11px 13px;
+    }
+    .spc-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
+    .spc-ey{font-size:10px;font-weight:700;color:var(--text3);letter-spacing:0.07em;text-transform:uppercase}
+    .risk-pill{padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
+    .risk-2{background:rgba(200,166,0,0.18);color:#ddbb00}
+    .risk-5{background:rgba(220,100,0,0.2);color:#ff7722}
+    .risk-10{background:rgba(220,0,0,0.2);color:#ff3311}
+    .risk-15{background:rgba(180,0,220,0.2);color:#cc44ff}
+    .spc-zones{font-size:12px;color:var(--text2);line-height:1.5}
+    .spc-updated{font-size:10px;color:var(--text3);margin-top:4px}
+
+    /* ── MODEL TAG ── */
+    .model-tag{
+      margin:8px 16px 0;
+      display:flex;align-items:center;gap:6px;
+      font-size:11px;color:var(--text3);
+    }
+    .model-dot{width:5px;height:5px;border-radius:50%;background:var(--green);flex-shrink:0}
+
+    /* ── SECTION LABEL ── */
+    .sec-lbl{padding:14px 16px 8px;font-size:10px;font-weight:700;color:var(--text3);letter-spacing:0.08em;text-transform:uppercase;display:flex;align-items:center;justify-content:space-between}
+    .sec-count{font-size:11px;color:var(--text3);font-weight:400;letter-spacing:0}
+
+    /* ── TARGET CARDS ── */
+    .tcard{
+      margin:0 16px 10px;
+      background:var(--surf2);border-radius:var(--r);
+      border:0.5px solid var(--border);
+      overflow:hidden;cursor:pointer;
+      transition:border-color 0.15s,transform 0.1s;
+    }
+    .tcard:active{transform:scale(0.99);border-color:var(--borderHi)}
+    .tcard.top-card{border-color:var(--red)}
+    .tcard.top-card .card-head{background:linear-gradient(135deg,rgba(204,34,0,0.08) 0%,transparent 60%)}
+
+    .card-head{padding:13px 14px 9px;display:flex;align-items:flex-start;justify-content:space-between}
+    .card-meta{flex:1;min-width:0}
+    .card-rank{font-size:10px;font-weight:700;color:var(--text3);letter-spacing:0.07em;text-transform:uppercase;margin-bottom:3px}
+    .card-rank.is-top{color:var(--red)}
+    .card-county{font-size:18px;font-weight:700;color:var(--text);letter-spacing:-0.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .card-state{font-size:12px;color:var(--text2);margin-top:2px;display:flex;align-items:center;gap:5px}
+    .dist-tag{background:var(--surf3);border-radius:4px;padding:1px 5px;font-size:10px;color:var(--text3)}
+
+    .score-ring{
+      width:48px;height:48px;border-radius:50%;flex-shrink:0;margin-left:10px;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      border:2px solid;
+    }
+    .ring-high{border-color:#ff4422;color:#ff4422}
+    .ring-mod{border-color:#ff8833;color:#ff8833}
+    .ring-marg{border-color:#ddbb00;color:#ddbb00}
+    .ring-weak{border-color:var(--text3);color:var(--text3)}
+    .score-n{font-size:17px;font-weight:700;line-height:1}
+    .score-l{font-size:8px;text-transform:uppercase;letter-spacing:0.05em;margin-top:2px;opacity:0.65}
+
+    /* Window strip */
+    .win-strip{
+      margin:0 14px 10px;
+      background:var(--surf3);border-radius:7px;
+      padding:7px 10px;
+      display:flex;align-items:center;gap:8px;
+    }
+    .win-icon{font-size:13px;flex-shrink:0}
+    .win-text{font-size:12px;color:var(--text2);flex:1}
+    .win-strong{color:var(--text);font-weight:600}
+    .win-badge{
+      background:rgba(204,34,0,0.15);
+      color:#ff6644;font-size:10px;font-weight:700;
+      padding:2px 7px;border-radius:5px;
+      white-space:nowrap;
+    }
+
+    /* Params grid */
+    .params{display:grid;grid-template-columns:1fr 1fr;gap:5px;padding:0 14px 13px}
+    .pb{padding:7px 9px;border-radius:8px;cursor:pointer;transition:opacity 0.15s}
+    .pb:active{opacity:0.7}
+    .pn{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px}
+    .pv{font-size:14px;font-weight:700;line-height:1}
+    .pt{font-size:9px;margin-top:3px}
+
+    .t-sig{background:rgba(200,0,0,0.14)}
+    .t-sig .pn,.t-sig .pt{color:#ff7766}
+    .t-sig .pv{color:#ff3322}
+    .t-vs{background:rgba(200,100,0,0.14)}
+    .t-vs .pn,.t-vs .pt{color:#ffaa66}
+    .t-vs .pv{color:#ff8800}
+    .t-str{background:rgba(58,148,0,0.14)}
+    .t-str .pn,.t-str .pt{color:#88cc55}
+    .t-str .pv{color:#66bb00}
+    .t-marg{background:rgba(160,140,0,0.12)}
+    .t-marg .pn,.t-marg .pt{color:#ccbb55}
+    .t-marg .pv{color:#aaaa00}
+    .t-weak{background:rgba(255,255,255,0.04)}
+    .t-weak .pn,.t-weak .pv,.t-weak .pt{color:var(--text3)}
+
+    /* Card footer */
+    .cfoot{border-top:0.5px solid var(--border);padding:8px 14px;display:flex;align-items:center;justify-content:space-between}
+    .spc-tag{font-size:11px;color:var(--text3)}
+    .spc-tag b{color:var(--text2);font-weight:600}
+    .brief-link{font-size:11px;color:#4488ff;display:flex;align-items:center;gap:3px;font-weight:500}
+
+    /* ── EMPTY / ERROR STATES ── */
+    .empty{margin:32px 16px;padding:36px 20px;text-align:center;background:var(--surf1);border-radius:var(--r);border:0.5px solid var(--border)}
+    .empty-ico{font-size:40px;margin-bottom:14px}
+    .empty-title{font-size:16px;font-weight:700;color:var(--text);margin-bottom:8px}
+    .empty-body{font-size:13px;color:var(--text2);line-height:1.6;max-width:280px;margin:0 auto}
+    .empty-action{margin-top:16px;padding:10px 20px;background:var(--surf3);border:0.5px solid var(--borderHi);border-radius:8px;font-size:13px;color:var(--text);cursor:pointer;display:inline-block}
+
+    /* ── SKELETONS ── */
+    .skel{background:var(--surf1);border-radius:10px;margin:12px 16px 8px;animation:skelf 1.3s ease-in-out infinite}
+    @keyframes skelf{0%,100%{opacity:0.4}50%{opacity:0.8}}
+
+    /* ── DISCLAIMER ── */
+    .disc{margin:6px 16px 20px;padding:10px 13px;background:var(--surf1);border-radius:8px;border-left:2px solid var(--surf3)}
+    .disc p{font-size:10px;color:var(--text3);line-height:1.65}
+
+    /* ── BOTTOM NAV ── */
+    .bnav{
+      position:fixed;bottom:0;left:0;right:0;
+      background:rgba(8,8,9,0.94);
+      backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+      border-top:0.5px solid var(--border);
+      padding:10px 0 calc(10px + env(safe-area-inset-bottom));
+      display:flex;align-items:center;justify-content:space-around;
+      z-index:100;
+    }
+    .bnav-btn{
+      display:flex;flex-direction:column;align-items:center;gap:3px;
+      background:none;border:none;cursor:pointer;padding:4px 12px;
+      color:var(--text3);font-size:10px;font-weight:500;letter-spacing:0.03em;
+      transition:color 0.15s;
+    }
+    .bnav-btn.active{color:var(--red)}
+    .bnav-btn svg{width:20px;height:20px}
+
+    /* ── SHEETS (slide-up panels) ── */
+    .sheet-overlay{
+      position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200;
+      opacity:0;pointer-events:none;transition:opacity 0.25s;
+    }
+    .sheet-overlay.open{opacity:1;pointer-events:all}
+    .sheet{
+      position:fixed;bottom:0;left:0;right:0;z-index:201;
+      background:var(--surf1);border-radius:18px 18px 0 0;
+      border-top:0.5px solid var(--borderHi);
+      max-height:88vh;overflow-y:auto;
+      transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.32,0.72,0,1);
+      padding-bottom:calc(20px + env(safe-area-inset-bottom));
+    }
+    .sheet.open{transform:translateY(0)}
+    .sheet-handle{width:36px;height:4px;background:var(--surf3);border-radius:2px;margin:12px auto 0}
+    .sheet-title{font-size:17px;font-weight:700;padding:16px 20px 4px;letter-spacing:-0.3px}
+    .sheet-sub{font-size:13px;color:var(--text2);padding:0 20px 16px;line-height:1.5;border-bottom:0.5px solid var(--border)}
+
+    /* Help sheet rows */
+    .help-row{padding:14px 20px;border-bottom:0.5px solid var(--border);display:flex;align-items:flex-start;gap:14px}
+    .help-icon{font-size:24px;flex-shrink:0;margin-top:2px}
+    .help-label{font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px}
+    .help-desc{font-size:13px;color:var(--text2);line-height:1.55}
+    .help-tiers{margin-top:8px;display:flex;flex-wrap:wrap;gap:5px}
+    .ht{padding:3px 8px;border-radius:5px;font-size:11px;font-weight:600}
+    .ht-sig{background:rgba(200,0,0,0.14);color:#ff5544}
+    .ht-vs{background:rgba(200,100,0,0.14);color:#ff8833}
+    .ht-str{background:rgba(58,148,0,0.14);color:#66bb00}
+    .ht-marg{background:rgba(160,140,0,0.12);color:#aaaa00}
+    .ht-weak{background:rgba(255,255,255,0.06);color:var(--text3)}
+
+    /* How-to sheet */
+    .howto-step{padding:14px 20px;border-bottom:0.5px solid var(--border);display:flex;gap:14px}
+    .step-num{width:26px;height:26px;border-radius:50%;background:var(--red);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+    .step-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px}
+    .step-desc{font-size:13px;color:var(--text2);line-height:1.55}
+
+    /* Brief sheet */
+    .brief-header{padding:18px 20px 14px;border-bottom:0.5px solid var(--border)}
+    .brief-county{font-size:22px;font-weight:700;letter-spacing:-0.5px}
+    .brief-state{font-size:14px;color:var(--text2);margin-top:2px}
+    .brief-section{padding:14px 20px;border-bottom:0.5px solid var(--border)}
+    .brief-sec-title{font-size:11px;font-weight:700;color:var(--text3);letter-spacing:0.07em;text-transform:uppercase;margin-bottom:8px}
+    .brief-params{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+    .brief-action{margin:16px 20px 0;padding:14px;background:var(--redDim);border-radius:10px;border:0.5px solid rgba(204,34,0,0.3)}
+    .brief-action-title{font-size:12px;font-weight:700;color:#ff6644;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.06em}
+    .brief-action-body{font-size:13px;color:var(--text2);line-height:1.6}
+
+    /* Score explainer */
+    .score-bar-wrap{padding:14px 20px}
+    .score-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+    .score-bar-label{width:80px;font-size:12px;color:var(--text2);flex-shrink:0}
+    .score-bar-track{flex:1;height:6px;background:var(--surf3);border-radius:3px;overflow:hidden}
+    .score-bar-fill{height:100%;border-radius:3px;transition:width 0.6s ease}
+    .score-bar-val{font-size:12px;font-weight:600;width:35px;text-align:right;flex-shrink:0}
   </style>
 </head>
 <body>
-<div class="header">
-  <div class="header-row">
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-top">
     <div class="brand">
-      <div class="brand-mark">
+      <div class="logo">
         <svg viewBox="0 0 24 24"><path d="M12 2C7.6 2 4 5.8 4 10.2c0 6.5 8 11.8 8 11.8s8-5.3 8-11.8C20 5.8 16.4 2 12 2zm0 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/></svg>
       </div>
       <div>
@@ -118,163 +293,530 @@
         <div class="brand-sub">Tornado Target Finder</div>
       </div>
     </div>
-    <div class="day-toggle">
-      <button class="day-btn active" id="d1" onclick="setDay(1)">Day 1</button>
-      <button class="day-btn" id="d2" onclick="setDay(2)">Day 2</button>
+    <div class="hdr-right">
+      <button class="help-btn" onclick="openSheet('how-sheet')" title="How to use">?</button>
+      <div class="day-toggle">
+        <button class="day-btn active" id="d1" onclick="setDay(1)">Day 1</button>
+        <button class="day-btn" id="d2" onclick="setDay(2)">Day 2</button>
+      </div>
     </div>
   </div>
   <div class="loc-row">
-    📍 <span id="locDisplay"><span class="loc-val">Locating…</span></span>
-    <button class="refresh-btn" onclick="runAnalysis()">↻</button>
+    <div class="loc-dot"></div>
+    <span id="locDisplay"><span class="loc-val">Locating…</span></span>
+    <span class="loc-dim" id="radiusTag"></span>
+    <button class="spin-btn" id="refreshBtn" onclick="runAnalysis()" title="Refresh" aria-label="Refresh data">↻</button>
   </div>
 </div>
 
+<!-- STATUS -->
 <div class="status-wrap">
   <div class="status-pill loading" id="statusPill">
-    <div class="dot pulse"></div>
+    <div class="sdot pulse"></div>
     <span id="statusTxt">Starting up…</span>
   </div>
 </div>
 
+<!-- MAIN CONTENT -->
 <div id="main"></div>
 
+<!-- BOTTOM NAV -->
+<nav class="bnav">
+  <button class="bnav-btn active" id="nav-targets" onclick="navTo('targets')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="11"/></svg>
+    Targets
+  </button>
+  <button class="bnav-btn" id="nav-params" onclick="openSheet('param-sheet')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18M7 12h10M10 18h4"/></svg>
+    Parameters
+  </button>
+  <button class="bnav-btn" id="nav-spc" onclick="openSPC()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+    SPC
+  </button>
+  <button class="bnav-btn" id="nav-help" onclick="openSheet('how-sheet')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg>
+    Help
+  </button>
+</nav>
+
+<!-- ═══════════════════════════════════════════
+     SHEET: HOW TO USE
+═══════════════════════════════════════════ -->
+<div class="sheet-overlay" id="how-overlay" onclick="closeSheet('how-sheet')"></div>
+<div class="sheet" id="how-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">How to use this tool</div>
+  <div class="sheet-sub">605 Chaser Tornado Target Finder automatically finds the best chase areas within 800 miles. Here's how to read and act on the results.</div>
+
+  <div class="howto-step">
+    <div class="step-num">1</div>
+    <div>
+      <div class="step-title">Open on chase morning</div>
+      <div class="step-desc">Open the app after 10Z (5am CT). The 06Z model run will be processed and the SPC Day 1 outlook will be up. This gives you the full picture for the day ahead.</div>
+    </div>
+  </div>
+  <div class="howto-step">
+    <div class="step-num">2</div>
+    <div>
+      <div class="step-title">Check the SPC banner first</div>
+      <div class="step-desc">The orange/red banner at the top shows the SPC tornado probability. The app only scores areas inside the SPC polygon — if there's no SPC risk, there's nothing to chase yet.</div>
+    </div>
+  </div>
+  <div class="howto-step">
+    <div class="step-num">3</div>
+    <div>
+      <div class="step-title">Read the target cards</div>
+      <div class="step-desc">Cards are ranked by composite score. The top card (red border) is the highest-confidence target. Each card shows the best time window — that's when parameters peak. Plan to be staged 30–60 minutes before the peak time.</div>
+    </div>
+  </div>
+  <div class="howto-step">
+    <div class="step-num">4</div>
+    <div>
+      <div class="step-title">Understand the score</div>
+      <div class="step-desc">Score is a weighted composite of all 6 parameters. Above 18 = high confidence, 12–18 = moderate, below 12 = marginal. A score of 15+ with SPC at 5%+ is a strong chase day.</div>
+    </div>
+  </div>
+  <div class="howto-step">
+    <div class="step-num">5</div>
+    <div>
+      <div class="step-title">Tap any card for a chase brief</div>
+      <div class="step-desc">Tapping a target opens a detailed brief with full parameter breakdown, suggested staging strategy, and a direct link to SPC mesoanalysis for that area.</div>
+    </div>
+  </div>
+  <div class="howto-step">
+    <div class="step-num">6</div>
+    <div>
+      <div class="step-title">Use Day 2 for pre-planning</div>
+      <div class="step-desc">Tap Day 2 to see tomorrow's setup. Use this for team coordination — share the top target county with Jeff, Brian, and Trace the night before so everyone can pre-position.</div>
+    </div>
+  </div>
+  <div class="howto-step">
+    <div class="step-num">7</div>
+    <div>
+      <div class="step-title">Refresh on chase day</div>
+      <div class="step-desc">Tap ↻ anytime to pull the latest model run and updated SPC outlook. Do this at 10Z, 16Z, and 22Z for the freshest data. Parameters shift significantly as the day develops.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SHEET: PARAMETER GUIDE
+═══════════════════════════════════════════ -->
+<div class="sheet-overlay" id="param-overlay" onclick="closeSheet('param-sheet')"></div>
+<div class="sheet" id="param-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">Parameter Guide</div>
+  <div class="sheet-sub">The 6 key tornado parameters and what each tier means in the field.</div>
+
+  <div class="help-row">
+    <div class="help-icon">🌀</div>
+    <div>
+      <div class="help-label">STP — Significant Tornado Parameter</div>
+      <div class="help-desc">The single best composite predictor of significant tornadoes (EF2+). Combines CAPE, SRH, shear, LCL height, and CIN. Values above 2 on a chase day warrant deployment.</div>
+      <div class="help-tiers">
+        <span class="ht ht-sig">4+ Significant</span>
+        <span class="ht ht-str">2–4 Strong</span>
+        <span class="ht ht-marg">1–2 Marginal</span>
+        <span class="ht ht-weak">&lt;1 Low</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="help-row">
+    <div class="help-icon">🔄</div>
+    <div>
+      <div class="help-label">0–1km SRH — Storm Relative Helicity</div>
+      <div class="help-desc">Measures the rotational energy in the lowest 1km. High SRH means low-level wind shear is favorable for tornado-producing mesocyclones. This is the layer that matters most for tornadoes near the surface.</div>
+      <div class="help-tiers">
+        <span class="ht ht-vs">300+ Very Strong</span>
+        <span class="ht ht-str">200–300 Strong</span>
+        <span class="ht ht-marg">100–200 Marginal</span>
+        <span class="ht ht-weak">&lt;100 Weak</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="help-row">
+    <div class="help-icon">⚡</div>
+    <div>
+      <div class="help-label">MLCAPE — Mixed Layer CAPE</div>
+      <div class="help-desc">Convective Available Potential Energy — the fuel for storms. Higher CAPE means stronger updrafts, taller storms, and more potential for violent tornadoes. Extreme CAPE alone doesn't guarantee tornadoes without shear.</div>
+      <div class="help-tiers">
+        <span class="ht ht-sig">4000+ Extreme</span>
+        <span class="ht ht-str">2500–4000 Strong</span>
+        <span class="ht ht-marg">1000–2500 Moderate</span>
+        <span class="ht ht-weak">&lt;1000 Weak</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="help-row">
+    <div class="help-icon">💨</div>
+    <div>
+      <div class="help-label">0–6km Shear — Bulk Wind Shear</div>
+      <div class="help-desc">The change in wind speed and direction from the surface to 6km. This is what organizes storms into supercells. Without sufficient deep-layer shear, even strong CAPE produces disorganized storms that can't tornado.</div>
+      <div class="help-tiers">
+        <span class="ht ht-vs">60+ Very Strong</span>
+        <span class="ht ht-str">45–60 Strong</span>
+        <span class="ht ht-marg">30–45 Good</span>
+        <span class="ht ht-weak">&lt;30 Weak</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="help-row">
+    <div class="help-icon">⚡</div>
+    <div>
+      <div class="help-label">EHI — Energy Helicity Index</div>
+      <div class="help-desc">Combines CAPE and SRH into a single number. EHI above 2 is strongly associated with significant tornadoes. It's the product of what a storm has to work with (CAPE) and the spin available (SRH).</div>
+      <div class="help-tiers">
+        <span class="ht ht-sig">4+ Significant</span>
+        <span class="ht ht-str">2–4 Strong</span>
+        <span class="ht ht-marg">1–2 Marginal</span>
+        <span class="ht ht-weak">&lt;1 Low</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="help-row">
+    <div class="help-icon">🌪️</div>
+    <div>
+      <div class="help-label">UH — Updraft Helicity</div>
+      <div class="help-desc">A model diagnostic showing rotating updraft strength. High UH in the model forecast indicates the atmosphere is supportive of supercell mesocyclones. On chase day, confirm with live radar — real UH is shown as rotation tracks on NEXRAD.</div>
+      <div class="help-tiers">
+        <span class="ht ht-sig">125+ Very Strong</span>
+        <span class="ht ht-str">75–125 Strong</span>
+        <span class="ht ht-marg">25–75 Moderate</span>
+        <span class="ht ht-weak">&lt;25 Weak</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SHEET: CHASE BRIEF (dynamic)
+═══════════════════════════════════════════ -->
+<div class="sheet-overlay" id="brief-overlay" onclick="closeSheet('brief-sheet')"></div>
+<div class="sheet" id="brief-sheet">
+  <div class="sheet-handle"></div>
+  <div id="brief-content"></div>
+</div>
+
 <script>
+// ─── State ────────────────────────────────────────────────────────────────
 let currentDay = 1;
 let userLat = null;
 let userLon = null;
+let lastData = null;
 
+// ─── Sheet management ─────────────────────────────────────────────────────
+function openSheet(id) {
+  document.getElementById(id.replace('-sheet','-overlay')).classList.add('open');
+  document.getElementById(id).classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeSheet(id) {
+  document.getElementById(id.replace('-sheet','-overlay')).classList.remove('open');
+  document.getElementById(id).classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function openSPC() {
+  window.open('https://www.spc.noaa.gov/products/outlook/day1otlk.html', '_blank');
+}
+
+function navTo(tab) {
+  document.querySelectorAll('.bnav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('nav-'+tab)?.classList.add('active');
+}
+
+// ─── Status ───────────────────────────────────────────────────────────────
 function setStatus(type, txt) {
   const pill = document.getElementById('statusPill');
   pill.className = 'status-pill ' + type;
-  pill.innerHTML = '<div class="dot' + (type==='loading'?' pulse':'') + '"></div><span>' + txt + '</span>';
+  pill.innerHTML = `<div class="sdot${type==='loading'?' pulse':''}"></div><span>${txt}</span>`;
 }
 
+// ─── Tier helpers ─────────────────────────────────────────────────────────
 function riskClass(p) {
-  if (p >= 15) return 'risk-15';
-  if (p >= 10) return 'risk-10';
-  if (p >= 5) return 'risk-5';
+  if (p>=15) return 'risk-15';
+  if (p>=10) return 'risk-10';
+  if (p>=5)  return 'risk-5';
   return 'risk-2';
 }
-
 function tierClass(t) {
   return {sig:'t-sig',vs:'t-vs',str:'t-str',marg:'t-marg',weak:'t-weak'}[t]||'t-weak';
 }
+function ringClass(tier) {
+  return {high:'ring-high',mod:'ring-mod',marg:'ring-marg',weak:'ring-weak'}[tier]||'ring-weak';
+}
+function scoreLabel(s) {
+  if (s>=18) return {text:'HIGH',color:'#ff4422'};
+  if (s>=12) return {text:'MOD',color:'#ff8833'};
+  if (s>=6)  return {text:'MARG',color:'#ddbb00'};
+  return {text:'WEAK',color:'var(--text3)'};
+}
 
+// ─── Render helpers ───────────────────────────────────────────────────────
 function renderSkeletons() {
   document.getElementById('main').innerHTML =
-    '<div class="skel" style="height:68px"></div>' +
-    '<div class="skel" style="height:200px"></div>' +
-    '<div class="skel" style="height:185px"></div>' +
-    '<div class="skel" style="height:175px"></div>';
+    '<div class="skel" style="height:70px"></div>' +
+    '<div class="skel" style="height:210px;margin-top:14px"></div>' +
+    '<div class="skel" style="height:195px"></div>' +
+    '<div class="skel" style="height:185px"></div>';
 }
 
 function renderNoRisk(day, msg) {
-  document.getElementById('main').innerHTML =
-    '<div class="empty"><div class="empty-icon">🌥️</div>' +
-    '<div class="empty-title">No SPC tornado risk nearby</div>' +
-    '<div class="empty-body">' + (msg || 'SPC Day ' + day + ' outlook shows no tornado probability ≥ 2% within 800 miles.') + '</div></div>';
+  document.getElementById('main').innerHTML = `
+    <div class="empty">
+      <div class="empty-ico">🌥️</div>
+      <div class="empty-title">No tornado risk in range</div>
+      <div class="empty-body">${msg||`SPC Day ${day} shows no tornado probability ≥ 2% within your 800-mile search area. Check back when a setup develops or try Day 2.`}</div>
+      <div class="empty-action" onclick="openSheet('how-sheet')">How does this work? →</div>
+    </div>`;
 }
 
 function renderError(msg) {
-  document.getElementById('main').innerHTML =
-    '<div class="empty"><div class="empty-icon">📡</div>' +
-    '<div class="empty-title">Could not load data</div>' +
-    '<div class="empty-body">' + msg + '<br><br>Tap ↻ to retry.</div></div>';
+  document.getElementById('main').innerHTML = `
+    <div class="empty">
+      <div class="empty-ico">📡</div>
+      <div class="empty-title">Data unavailable</div>
+      <div class="empty-body">${msg||'Could not reach weather data sources.'}<br><br>Check your connection and tap ↻ to retry.</div>
+      <div class="empty-action" onclick="runAnalysis()">Retry →</div>
+    </div>`;
 }
 
+function renderNoTargets(day, spc) {
+  document.getElementById('main').innerHTML = `
+    <div class="spc-banner">
+      <div class="spc-row">
+        <div class="spc-ey">SPC Day ${day} Tornado Outlook</div>
+        <div class="risk-pill ${riskClass(spc.maxProb)}">${spc.maxProb}% max</div>
+      </div>
+      <div class="spc-zones">${spc.zones.slice(0,3).join(' · ')}</div>
+    </div>
+    <div class="empty" style="margin-top:12px">
+      <div class="empty-ico">⚠️</div>
+      <div class="empty-title">SPC risk found — parameters too weak</div>
+      <div class="empty-body">The SPC has a tornado risk in your area but current model parameters don't score any strong targets. The setup may be marginal or models may be underperforming. Check SPC mesoanalysis directly.</div>
+      <div class="empty-action" onclick="openSPC()">View SPC Outlook →</div>
+    </div>`;
+}
+
+// ─── Main render ──────────────────────────────────────────────────────────
 function renderResults(data) {
-  const { spc, targets, day } = data;
-  let html = '<div class="spc-card"><div class="spc-top">' +
-    '<div class="spc-eyebrow">SPC Day ' + day + ' Tornado Outlook</div>' +
-    '<div class="risk-pill ' + riskClass(spc.maxProb) + '">' + spc.maxProb + '% max</div>' +
-    '</div><div class="spc-zones">' + spc.zones.slice(0,3).join(' · ') + '</div></div>';
+  lastData = data;
+  const {spc, targets, day} = data;
+  let html = '';
 
+  // SPC banner
+  html += `<div class="spc-banner">
+    <div class="spc-row">
+      <div class="spc-ey">SPC Day ${day} Tornado Outlook</div>
+      <div class="risk-pill ${riskClass(spc.maxProb)}">${spc.maxProb}% max</div>
+    </div>
+    <div class="spc-zones">${spc.zones.slice(0,3).join(' · ')}</div>
+    <div class="spc-updated">Cross-referenced against ${targets.length} scored grid point${targets.length!==1?'s':''} · tap Parameters to understand each value</div>
+  </div>`;
+
+  // Model tag
   const h = new Date().getUTCHours();
-  const run = h < 9 ? '06Z' : h < 15 ? '12Z' : '18Z';
-  html += '<div class="run-tag">NAM 3km · ' + (day===1 ? run + ' run' : '48hr forecast') + '</div>';
-  html += '<div class="section-lbl">Ranked targets · ' + targets.length + ' within 800 mi</div>';
+  const run = h<9?'06Z':h<15?'12Z':'18Z';
+  html += `<div class="model-tag"><div class="model-dot"></div>GFS Seamless · ${day===1?run+' cycle':'48hr forecast'} · auto-refreshes on open</div>`;
 
+  // Section label
+  html += `<div class="sec-lbl">Ranked targets <span class="sec-count">${targets.length} of ${targets.length} within 800 mi</span></div>`;
+
+  // Target cards
   targets.forEach((t, i) => {
-    const isTop = i === 0;
-    const ring = t.tier==='high' ? 'high' : t.tier==='mod' ? 'mod' : 'marg';
-    const rankLbl = isTop ? '▲ Top target' : '#' + t.rank;
-    let params = '';
-    ['stp','srh','cape','shear','ehi','uh'].forEach(k => {
+    const isTop = i===0;
+    const sl = scoreLabel(t.score);
+    let paramsHtml = '';
+    ['stp','srh','cape','shear','ehi','uh'].forEach(k=>{
       const p = t.params[k];
       if (!p) return;
-      params += '<div class="pbadge ' + tierClass(p.tier) + '">' +
-        '<div class="pname">' + p.name + '</div>' +
-        '<div class="pval">' + p.label + '</div>' +
-        '<div class="ptier">' + p.tierName + '</div></div>';
+      paramsHtml += `<div class="pb ${tierClass(p.tier)}" onclick="event.stopPropagation();showParamHelp('${k}')">
+        <div class="pn">${p.name}</div>
+        <div class="pv">${p.label}</div>
+        <div class="pt">${p.tierName}</div>
+      </div>`;
     });
-    html += '<div class="target-card' + (isTop?' top':'') + '" onclick="openBrief(\'' + t.county + '\',\'' + t.state + '\')">' +
-      '<div class="card-head"><div>' +
-      '<div class="card-rank' + (isTop?' top':'') + '">' + rankLbl + '</div>' +
-      '<div class="card-county">' + (t.county||t.lat.toFixed(2)+'°N') + '</div>' +
-      '<div class="card-state">' + t.state + (t.dist?' · '+t.dist+' mi':'') + '</div>' +
-      '</div><div class="score-ring ' + ring + '"><div class="score-n">' + t.score.toFixed(1) + '</div><div class="score-l">score</div></div></div>' +
-      '<div class="card-window">Best window <span class="window-strong">' + t.window.start + '–' + t.window.end + '</span> · peak <span class="window-strong">' + t.window.peak + '</span></div>' +
-      '<div class="params">' + params + '</div>' +
-      '<div class="card-foot"><div class="spc-inline">SPC: <b>' + t.spc_prob + '% tornado</b></div>' +
-      '<div class="chase-link">Chase brief →</div></div></div>';
+
+    html += `<div class="tcard${isTop?' top-card':''}" onclick="openBrief(${i})">
+      <div class="card-head">
+        <div class="card-meta">
+          <div class="card-rank${isTop?' is-top':''}">${isTop?'▲ Top target':'#'+t.rank}</div>
+          <div class="card-county">${t.county||t.lat.toFixed(2)+'°N'}</div>
+          <div class="card-state">
+            ${t.state}
+            ${t.dist?`<span class="dist-tag">${t.dist} mi</span>`:''}
+          </div>
+        </div>
+        <div class="score-ring ${ringClass(t.tier)}">
+          <div class="score-n">${t.score.toFixed(1)}</div>
+          <div class="score-l">${sl.text}</div>
+        </div>
+      </div>
+      <div class="win-strip">
+        <div class="win-icon">⏱</div>
+        <div class="win-text">Best window <span class="win-strong">${t.window.start}–${t.window.end}</span> · peak <span class="win-strong">${t.window.peak}</span></div>
+        <div class="win-badge">Stage by ${t.window.start}</div>
+      </div>
+      <div class="params">${paramsHtml}</div>
+      <div class="cfoot">
+        <div class="spc-tag">SPC: <b>${t.spc_prob}% tornado probability</b></div>
+        <div class="brief-link">Chase brief →</div>
+      </div>
+    </div>`;
   });
 
-  html += '<div class="disc"><p>Parameters from NAM 3km via IEM. SPC outlook cross-referenced from official Day ' + day + ' GeoJSON. UH is a model diagnostic — verify with live radar on chase day.</p></div>';
+  html += `<div class="disc"><p>Scores derived from GFS Seamless via Open-Meteo. SPC tornado outlook cross-referenced from official Day ${day} GeoJSON. SRH, STP, EHI, and UH are model-derived proxies — treat as planning guidance. Always cross-reference with SPC mesoanalysis and live radar on chase day. Tap any parameter badge for its definition.</p></div>`;
+
   document.getElementById('main').innerHTML = html;
 }
 
-function openBrief(county, state) {
-  window.open('https://www.spc.noaa.gov/exper/mesoanalysis/s2/stp/stp_sf.gif', '_blank');
+// ─── Parameter tap ────────────────────────────────────────────────────────
+function showParamHelp(key) {
+  openSheet('param-sheet');
+  // Scroll to the relevant param in the sheet
+  setTimeout(()=>{
+    const rows = document.querySelectorAll('#param-sheet .help-row');
+    const order = ['stp','srh','cape','shear','ehi','uh'];
+    const idx = order.indexOf(key);
+    if (idx>=0 && rows[idx]) rows[idx].scrollIntoView({behavior:'smooth', block:'nearest'});
+  }, 350);
 }
 
+// ─── Chase brief ──────────────────────────────────────────────────────────
+function openBrief(idx) {
+  if (!lastData) return;
+  const t = lastData.targets[idx];
+  if (!t) return;
+
+  const sl = scoreLabel(t.score);
+  const strategies = {
+    high: "Position south or southwest of the target county by the start of the window. This is a high-confidence target — prioritize getting there early. Have your escape routes planned east and northeast.",
+    mod:  "Position within the target county by the start of the window. Moderate confidence — watch for storm initiation on radar before fully committing. Have a backup target ready.",
+    marg: "Use this as a secondary target. Marginal parameters mean storm organization may be poor. Stay flexible and be ready to shift to higher-confidence areas if they develop."
+  };
+
+  let paramsHtml = '';
+  ['stp','srh','cape','shear','ehi','uh'].forEach(k=>{
+    const p = t.params[k];
+    if (!p) return;
+    const barWidth = Math.min(p.pts / 4 * 100, 100);
+    const barColor = {sig:'#ff3322',vs:'#ff8800',str:'#66aa00',marg:'#aaaa00',weak:'#404048'}[p.tier]||'#404048';
+    paramsHtml += `<div class="score-bar-row">
+      <div class="score-bar-label">${p.name}</div>
+      <div class="score-bar-track"><div class="score-bar-fill" style="width:${barWidth}%;background:${barColor}"></div></div>
+      <div class="score-bar-val" style="color:${barColor}">${p.label}</div>
+    </div>`;
+  });
+
+  document.getElementById('brief-content').innerHTML = `
+    <div class="brief-header">
+      <div class="card-rank is-top">#${t.rank} Target · Score ${t.score.toFixed(1)} / ${sl.text}</div>
+      <div class="brief-county">${t.county||t.lat.toFixed(2)+'°N'}</div>
+      <div class="brief-state">${t.state} · ${t.lat.toFixed(3)}°N, ${Math.abs(t.lon).toFixed(3)}°W · ${t.dist||'?'} mi from you</div>
+    </div>
+    <div class="brief-section">
+      <div class="brief-sec-title">Best time window</div>
+      <div style="font-size:22px;font-weight:700;letter-spacing:-0.5px">${t.window.start} – ${t.window.end}</div>
+      <div style="font-size:13px;color:var(--text2);margin-top:4px">Peak parameters at <strong>${t.window.peak}</strong> · Stage 30–60 min before</div>
+    </div>
+    <div class="brief-section">
+      <div class="brief-sec-title">Parameter breakdown</div>
+      <div class="score-bar-wrap" style="padding:0">${paramsHtml}</div>
+    </div>
+    <div class="brief-section">
+      <div class="brief-sec-title">SPC tornado probability</div>
+      <div style="font-size:22px;font-weight:700;color:${t.spc_prob>=5?'#ff7722':'#ddbb00'}">${t.spc_prob}%</div>
+      <div style="font-size:13px;color:var(--text2);margin-top:4px">From official SPC Day ${lastData.day} tornado outlook</div>
+    </div>
+    <div class="brief-action">
+      <div class="brief-action-title">📋 Staging strategy</div>
+      <div class="brief-action-body">${strategies[t.tier]||strategies.marg}</div>
+    </div>
+    <div style="padding:16px 20px;display:flex;gap:10px">
+      <div onclick="window.open('https://www.spc.noaa.gov/exper/mesoanalysis/s2/stp/stp_sf.gif','_blank')" style="flex:1;padding:12px;background:var(--surf3);border-radius:10px;text-align:center;cursor:pointer;font-size:13px;font-weight:600">SPC Mesoanalysis →</div>
+      <div onclick="closeSheet('brief-sheet')" style="flex:1;padding:12px;background:var(--redDim);border-radius:10px;text-align:center;cursor:pointer;font-size:13px;font-weight:600;color:#ff6644">Close</div>
+    </div>`;
+
+  openSheet('brief-sheet');
+}
+
+// ─── Day toggle ───────────────────────────────────────────────────────────
 function setDay(d) {
   currentDay = d;
-  document.getElementById('d1').classList.toggle('active', d===1);
-  document.getElementById('d2').classList.toggle('active', d===2);
+  document.getElementById('d1').classList.toggle('active',d===1);
+  document.getElementById('d2').classList.toggle('active',d===2);
   runAnalysis();
 }
 
+// ─── Geolocation ──────────────────────────────────────────────────────────
 function getLocation() {
-  return new Promise(resolve => {
-    if (!navigator.geolocation) { resolve({lat:43.55,lon:-96.7}); return; }
+  return new Promise(resolve=>{
+    if (!navigator.geolocation){resolve({lat:43.55,lon:-96.7});return}
     navigator.geolocation.getCurrentPosition(
-      p => resolve({lat:parseFloat(p.coords.latitude.toFixed(4)), lon:parseFloat(p.coords.longitude.toFixed(4))}),
-      () => resolve({lat:43.55,lon:-96.7}),
+      p=>resolve({lat:parseFloat(p.coords.latitude.toFixed(4)),lon:parseFloat(p.coords.longitude.toFixed(4))}),
+      ()=>resolve({lat:43.55,lon:-96.7}),
       {timeout:8000}
     );
   });
 }
 
+// ─── Main analysis flow ───────────────────────────────────────────────────
 async function runAnalysis() {
   renderSkeletons();
-  setStatus('loading', 'Getting your location…');
+  setStatus('loading','Getting your location…');
+  const btn = document.getElementById('refreshBtn');
+  btn.classList.add('spinning');
+
   try {
     const loc = await getLocation();
     userLat = loc.lat; userLon = loc.lon;
-    document.getElementById('locDisplay').innerHTML = '<span class="loc-val">' + loc.lat.toFixed(3) + '°N, ' + Math.abs(loc.lon).toFixed(3) + '°W</span> · 800 mi';
-    setStatus('loading', 'Checking SPC Day ' + currentDay + '…');
-    const resp = await fetch('/.netlify/functions/targets?lat=' + userLat + '&lon=' + userLon + '&day=' + currentDay + '&radius=800');
-    if (!resp.ok) throw new Error('API error ' + resp.status);
+    document.getElementById('locDisplay').innerHTML =
+      `<span class="loc-val">${loc.lat.toFixed(3)}°N, ${Math.abs(loc.lon).toFixed(3)}°W</span>`;
+    document.getElementById('radiusTag').textContent = '· 800 mi radius';
+
+    setStatus('loading',`Checking SPC Day ${currentDay} outlook…`);
+
+    const resp = await fetch(`/.netlify/functions/targets?lat=${userLat}&lon=${userLon}&day=${currentDay}&radius=800`);
+    if (!resp.ok) throw new Error(`Server error ${resp.status}`);
     const data = await resp.json();
     if (data.error) throw new Error(data.error);
+
     if (!data.hasRisk) {
-      setStatus('no-risk', 'No SPC tornado risk within 800 miles');
+      setStatus('no-risk','No SPC tornado risk within 800 miles');
       renderNoRisk(currentDay, data.message);
       return;
     }
-    setStatus('live', 'Day ' + currentDay + ' · ' + data.targets.length + ' targets · SPC ' + data.spc.maxProb + '% max');
+    if (!data.targets || data.targets.length===0) {
+      setStatus('no-risk','SPC risk found — parameters marginal');
+      renderNoTargets(currentDay, data.spc);
+      return;
+    }
+
+    setStatus('live',`Day ${currentDay} · ${data.targets.length} target${data.targets.length!==1?'s':''} · SPC ${data.spc.maxProb}% max`);
     renderResults(data);
+
   } catch(err) {
-    setStatus('error', 'Failed — tap ↻ to retry');
+    setStatus('error','Failed — tap ↻ to retry');
     renderError(err.message||'Unknown error');
+  } finally {
+    btn.classList.remove('spinning');
   }
 }
 
+// ─── PWA service worker ───────────────────────────────────────────────────
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(()=>{}));
+  window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
 }
 
+// ─── Boot ─────────────────────────────────────────────────────────────────
 runAnalysis();
 </script>
 </body>
 </html>
+HTMLEOF
