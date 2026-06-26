@@ -1,0 +1,17 @@
+{
+  "name": "605 Chaser — Tornado Target Finder",
+  "short_name": "605 Targets",
+  "description": "NAM 3km tornado target scoring with SPC outlook cross-reference",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0b",
+  "theme_color": "#cc2200",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
