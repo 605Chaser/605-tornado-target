@@ -125,10 +125,10 @@ async function getTimezone(lat, lon) {
 
 async function fetchNAM(lat, lon, day) {
   const forecastDays = day === 2 ? 2 : 1;
-  // nam_conus = NAM CONUS 3km — 3km resolution, updates every 6 hours, 60hr forecast
+  // nam_conus = NAM CONUS 3km, updates every 6 hours, 60hr max forecast
   const url = `https://api.open-meteo.com/v1/gfs?latitude=${lat}&longitude=${lon}` +
     `&hourly=cape,lifted_index,convective_inhibition,wind_speed_10m,wind_speed_80m,` +
-    `wind_speed_120m,wind_direction_10m,wind_direction_80m,wind_direction_120m,` +
+    `wind_direction_10m,wind_direction_80m,` +
     `temperature_2m,dew_point_2m` +
     `&wind_speed_unit=kn&forecast_days=${forecastDays}&timezone=UTC&models=nam_conus`;
   try {
@@ -150,43 +150,39 @@ function scoreBestWindow(hourly, day, targetTz) {
   times.forEach((t, i) => {
     if (!t.startsWith(targetDateStr)) return;
     const hour = parseInt(t.slice(11, 13));
-    // Focus on afternoon/evening convective window 15Z-03Z
+    // Focus on convective window 15Z-03Z
     if (hour < 15 && hour > 3) return;
 
-    const cape  = Math.max(parseFloat(hourly.cape?.[i] || 0), 0);
-    const cin   = Math.abs(parseFloat(hourly.convective_inhibition?.[i] || 0));
-    const li    = parseFloat(hourly.lifted_index?.[i] || 0);
-    const t2m   = parseFloat(hourly.temperature_2m?.[i] || 20);
-    const td2m  = parseFloat(hourly.dew_point_2m?.[i] || 10);
+    const cape = Math.max(parseFloat(hourly.cape?.[i] || 0), 0);
+    const cin  = Math.abs(parseFloat(hourly.convective_inhibition?.[i] || 0));
+    const li   = parseFloat(hourly.lifted_index?.[i] || 0);
+    const t2m  = parseFloat(hourly.temperature_2m?.[i] || 20);
+    const td2m = parseFloat(hourly.dew_point_2m?.[i] || 10);
 
-    // Wind components at surface (10m) and ~1km (80m) and ~3km (120m)
-    const ws10  = parseFloat(hourly.wind_speed_10m?.[i]    || 0);
-    const wd10  = parseFloat(hourly.wind_direction_10m?.[i] || 0);
-    const ws80  = parseFloat(hourly.wind_speed_80m?.[i]    || 0);
-    const wd80  = parseFloat(hourly.wind_direction_80m?.[i] || 0);
-    const ws120 = parseFloat(hourly.wind_speed_120m?.[i]   || 0);
-    const wd120 = parseFloat(hourly.wind_direction_120m?.[i]|| 0);
+    // Wind at surface (10m) and ~1km proxy (80m)
+    const ws10 = parseFloat(hourly.wind_speed_10m?.[i]   || 0);
+    const wd10 = parseFloat(hourly.wind_direction_10m?.[i]|| 0);
+    const ws80 = parseFloat(hourly.wind_speed_80m?.[i]   || 0);
+    const wd80 = parseFloat(hourly.wind_direction_80m?.[i]|| 0);
 
     // U/V components
-    const u10  = -ws10  * Math.sin(wd10  * Math.PI/180);
-    const v10  = -ws10  * Math.cos(wd10  * Math.PI/180);
-    const u80  = -ws80  * Math.sin(wd80  * Math.PI/180);
-    const v80  = -ws80  * Math.cos(wd80  * Math.PI/180);
-    const u120 = -ws120 * Math.sin(wd120 * Math.PI/180);
-    const v120 = -ws120 * Math.cos(wd120 * Math.PI/180);
+    const u10 = -ws10 * Math.sin(wd10 * Math.PI/180);
+    const v10 = -ws10 * Math.cos(wd10 * Math.PI/180);
+    const u80 = -ws80 * Math.sin(wd80 * Math.PI/180);
+    const v80 = -ws80 * Math.cos(wd80 * Math.PI/180);
 
-    // 0-1km shear (surface to 80m proxy, scaled to 1km)
+    // 0-1km shear (10m to 80m scaled to 1km)
     const shear01 = Math.sqrt((u80-u10)**2 + (v80-v10)**2) * 4.0;
 
-    // 0-6km bulk shear (surface to 120m proxy, scaled to 6km)
-    const shear06 = Math.sqrt((u120-u10)**2 + (v120-v10)**2) * 3.2;
+    // 0-6km bulk shear proxy (scaled from low-level shear)
+    const shear06 = Math.sqrt((u80-u10)**2 + (v80-v10)**2) * 3.5;
 
-    // SRH proxy — use 0-1km shear magnitude and directional change
+    // SRH proxy — shear magnitude + directional veering
     const dirChange = Math.abs(wd80 - wd10);
     const dirFactor = Math.min(dirChange > 180 ? 360 - dirChange : dirChange, 90) / 90;
     const srhProxy  = cape > 300 ? Math.min(shear01 * 12 * dirFactor + (cape/40), 400) : 0;
 
-    // LCL proxy from T/Td spread (rough but useful)
+    // LCL from T/Td spread
     const lcl = Math.max(125 * (t2m - td2m), 400);
 
     // EHI
@@ -207,12 +203,12 @@ function scoreBestWindow(hourly, day, targetTz) {
       Math.min((cape/100) * (shear06/40), 150) : 0;
 
     const params = {
-      stp:   {...scoreSTP(stp),     val:stp,      label:stp.toFixed(1),              name:"STP"},
-      srh:   {...scoreSRH(srhProxy),val:srhProxy, label:Math.round(srhProxy)+" m²/s²",name:"0–1km SRH"},
-      cape:  {...scoreCAPE(cape),   val:cape,     label:Math.round(cape)+" J/kg",     name:"MLCAPE"},
-      shear: {...scoreShear(shear06),val:shear06, label:Math.round(shear06)+" kt",    name:"0–6km Shear"},
-      ehi:   {...scoreEHI(ehi),     val:ehi,      label:ehi.toFixed(1),               name:"EHI"},
-      uh:    {...scoreUH(uhProxy),  val:uhProxy,  label:Math.round(uhProxy)+" m²/s²", name:"UH"}
+      stp:   {...scoreSTP(stp),      val:stp,      label:stp.toFixed(1),               name:"STP"},
+      srh:   {...scoreSRH(srhProxy), val:srhProxy, label:Math.round(srhProxy)+" m²/s²", name:"0–1km SRH"},
+      cape:  {...scoreCAPE(cape),    val:cape,     label:Math.round(cape)+" J/kg",       name:"MLCAPE"},
+      shear: {...scoreShear(shear06),val:shear06,  label:Math.round(shear06)+" kt",      name:"0–6km Shear"},
+      ehi:   {...scoreEHI(ehi),      val:ehi,      label:ehi.toFixed(1),                 name:"EHI"},
+      uh:    {...scoreUH(uhProxy),   val:uhProxy,  label:Math.round(uhProxy)+" m²/s²",   name:"UH"}
     };
 
     const s = compositeScore(params);
@@ -223,10 +219,10 @@ function scoreBestWindow(hourly, day, targetTz) {
 
   if (!bestParams) return null;
 
-  const peakLocal  = utcHourToLocal(bestUTCHour, targetTz);
   const startUTC   = Math.max(bestUTCHour - 2, 12);
   const endUTC     = Math.min(bestUTCHour + 2, 27) % 24;
   const startLocal = utcHourToLocal(startUTC, targetTz);
+  const peakLocal  = utcHourToLocal(bestUTCHour, targetTz);
   const endLocal   = utcHourToLocal(endUTC, targetTz);
   const abbr       = tzAbbr(targetTz);
 
@@ -333,7 +329,7 @@ exports.handler = async function(event) {
     results.sort((a,b)=>b.score-a.score);
     const top5 = results.slice(0,5);
     for (let i=0; i<top5.length; i++) {
-      const geo    = await geocode(top5[i].lat, top5[i].lon);
+      const geo      = await geocode(top5[i].lat, top5[i].lon);
       top5[i].county = geo.county;
       top5[i].state  = geo.state;
       top5[i].rank   = i+1;
