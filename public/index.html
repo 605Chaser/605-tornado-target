@@ -660,8 +660,8 @@ function renderResults(data) {
       </div>
       <div class="win-strip">
         <div class="win-icon">⏱</div>
-        <div class="win-text">Best window <span class="win-strong">${t.window.start}–${t.window.end}</span> · peak <span class="win-strong">${t.window.peak}</span></div>
-        <div class="win-badge">Stage by ${t.window.start}</div>
+        <div class="win-text">Best window <span class="win-strong">${t.window.start}–${t.window.end} ${t.window.tzAbbr}</span> · peak <span class="win-strong">${t.window.peak}</span></div>
+        <div class="win-badge">Stage by ${t.window.start} ${t.window.tzAbbr}</div>
       </div>
       <div class="params">${paramsHtml}</div>
       <div class="cfoot">
@@ -722,8 +722,8 @@ function openBrief(idx) {
     </div>
     <div class="brief-section">
       <div class="brief-sec-title">Best time window</div>
-      <div style="font-size:22px;font-weight:700;letter-spacing:-0.5px">${t.window.start} – ${t.window.end}</div>
-      <div style="font-size:13px;color:var(--text2);margin-top:4px">Peak parameters at <strong>${t.window.peak}</strong> · Stage 30–60 min before</div>
+      <div style="font-size:22px;font-weight:700;letter-spacing:-0.5px">${t.window.start} – ${t.window.end} <span style="font-size:14px;font-weight:500;color:var(--text2)">${t.window.tzAbbr}</span></div>
+      <div style="font-size:13px;color:var(--text2);margin-top:4px">Peak at <strong>${t.window.peak} ${t.window.tzAbbr}</strong> (${t.window.peakUTC}) · Stage 30-60 min before</div><div style="font-size:11px;color:var(--text3);margin-top:3px">UTC: ${t.window.startUTC} - ${t.window.endUTC} · ${t.window.timezone}</div>
     </div>
     <div class="brief-section">
       <div class="brief-sec-title">Parameter breakdown</div>
