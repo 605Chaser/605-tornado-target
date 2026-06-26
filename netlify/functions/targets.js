@@ -85,11 +85,52 @@ function fetchJSON(url) {
   });
 }
 
-// Open-Meteo: fetch CAPE, shear, SRH for a point across hourly forecast
-async function fetchOpenMeteo(lat, lon, day) {
+// ── Convert UTC hour to local time string using IANA timezone ──────────────
+function utcHourToLocal(utcHour, ianaTimezone) {
+  try {
+    const now = new Date();
+    const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), utcHour, 0, 0));
+    const fmt = new Intl.DateTimeFormat('en-US', {
+      hour: 'numeric', minute: '2-digit', hour12: true,
+      timeZone: ianaTimezone
+    });
+    const parts = fmt.formatToParts(d);
+    const hour  = parts.find(p=>p.type==='hour')?.value;
+    const min   = parts.find(p=>p.type==='minute')?.value;
+    const ampm  = parts.find(p=>p.type==='dayperiod')?.value||'';
+    return `${hour}${min==='00'?'':':'+min}${ampm.toLowerCase()}`;
+  } catch {
+    return `${utcHour.toString().padStart(2,'0')}Z`;
+  }
+}
+
+// ── Get short timezone abbreviation (CDT, MDT, etc.) ──────────────────────
+function tzAbbr(ianaTimezone) {
+  try {
+    const d = new Date();
+    const fmt = new Intl.DateTimeFormat('en-US', {
+      timeZoneName: 'short', timeZone: ianaTimezone
+    });
+    const parts = fmt.formatToParts(d);
+    return parts.find(p=>p.type==='timeZoneName')?.value || '';
+  } catch { return ''; }
+}
+
+// ── Lookup IANA timezone for a lat/lon using Open-Meteo (free, no key) ────
+async function getTimezone(lat, lon) {
+  try {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m&forecast_days=1&timezone=auto`;
+    const data = await fetchJSON(url);
+    return data.timezone || 'America/Chicago';
+  } catch {
+    return 'America/Chicago';
+  }
+}
+
+async function fetchOpenMeteo(lat, lon, day, timezone) {
   const forecastDays = day === 2 ? 2 : 1;
   const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
-    `&hourly=cape,lifted_index,convective_inhibition,wind_speed_10m,wind_speed_80m,wind_speed_120m,wind_speed_180m,wind_direction_10m,wind_direction_180m,temperature_2m,dewpoint_2m` +
+    `&hourly=cape,lifted_index,convective_inhibition,wind_speed_10m,wind_speed_180m,wind_direction_10m,wind_direction_180m` +
     `&wind_speed_unit=kn&forecast_days=${forecastDays}&timezone=UTC&models=gfs_seamless`;
   try {
     const data = await fetchJSON(url);
@@ -98,97 +139,76 @@ async function fetchOpenMeteo(lat, lon, day) {
   } catch { return null; }
 }
 
-// Find the best scoring hour window within a day's hourly data
-function scoreBestWindow(hourly, day) {
+function scoreBestWindow(hourly, day, targetTz) {
   const times = hourly.time;
   const now = new Date();
   const targetDate = new Date(now);
   if (day === 2) targetDate.setUTCDate(targetDate.getUTCDate() + 1);
   const targetDateStr = targetDate.toISOString().slice(0, 10);
 
-  let bestScore = 0;
-  let bestParams = null;
-  let bestTimeLabel = null;
-  let bestIdx = -1;
+  let bestScore = 0, bestParams = null, bestUTCHour = 18, bestIdx = -1;
 
   times.forEach((t, i) => {
     if (!t.startsWith(targetDateStr)) return;
     const hour = parseInt(t.slice(11, 13));
-    // Focus on afternoon/evening convective window 15Z-03Z
     if (hour < 15 && hour > 3) return;
 
     const cape = Math.max(parseFloat(hourly.cape?.[i] || 0), 0);
     const cin  = Math.abs(parseFloat(hourly.convective_inhibition?.[i] || 0));
     const li   = parseFloat(hourly.lifted_index?.[i] || 0);
-
-    // Bulk shear estimate: surface to ~6km using wind components at surface vs 180m (proxy)
     const ws10  = parseFloat(hourly.wind_speed_10m?.[i] || 0);
     const wd10  = parseFloat(hourly.wind_direction_10m?.[i] || 0);
     const ws180 = parseFloat(hourly.wind_speed_180m?.[i] || 0);
     const wd180 = parseFloat(hourly.wind_direction_180m?.[i] || 0);
 
-    // Convert to u/v components and get shear magnitude (scaled to 0-6km proxy)
     const u10  = -ws10  * Math.sin(wd10  * Math.PI/180);
     const v10  = -ws10  * Math.cos(wd10  * Math.PI/180);
     const u180 = -ws180 * Math.sin(wd180 * Math.PI/180);
     const v180 = -ws180 * Math.cos(wd180 * Math.PI/180);
-    const shearRaw = Math.sqrt((u180-u10)**2 + (v180-v10)**2);
-    // Scale: 180m layer shear to approximate 0-6km (empirical multiplier ~2.8)
-    const shear = shearRaw * 2.8;
+    const shear = Math.sqrt((u180-u10)**2 + (v180-v10)**2) * 2.8;
 
-    // SRH: approximate from CAPE and shear (proxy when direct SRH unavailable)
-    // Use LI as a proxy quality check — LI < -2 with high CAPE suggests strong rotation potential
     const srhProxy = cape > 500 ? Math.min((cape / 8) * (shear / 30), 400) : 0;
-
-    // EHI = (CAPE * SRH) / 160000
     const ehi = (cape * srhProxy) / 160000;
-
-    // STP components
-    const lcl = li < -3 ? 800 : li < -1 ? 1200 : 1600; // proxy LCL from LI
+    const lcl = li < -3 ? 800 : li < -1 ? 1200 : 1600;
     const stp = Math.max(
-      Math.min(cape/1500, 2) *
-      Math.min(srhProxy/150, 2) *
-      Math.min((shear*0.5144)/20, 1.5) *
-      Math.max((2000-lcl)/1000, 0) *
-      Math.min(cin < 50 ? 1 : (200-cin)/150, 1),
-      0
+      Math.min(cape/1500,2)*Math.min(srhProxy/150,2)*Math.min((shear*0.5144)/20,1.5)*
+      Math.max((2000-lcl)/1000,0)*Math.min(cin<50?1:(200-cin)/150,1), 0
     );
-
-    // UH proxy: high CAPE + strong shear + low CIN
-    const uhProxy = (cape > 1000 && shear > 30 && cin < 100) ?
-      Math.min((cape/100) * (shear/40), 150) : 0;
+    const uhProxy = (cape>1000&&shear>30&&cin<100) ? Math.min((cape/100)*(shear/40),150) : 0;
 
     const params = {
-      stp:   {...scoreSTP(stp),   val:stp,      label:stp.toFixed(1),          name:"STP"},
+      stp:   {...scoreSTP(stp),   val:stp,      label:stp.toFixed(1),           name:"STP"},
       srh:   {...scoreSRH(srhProxy), val:srhProxy, label:Math.round(srhProxy)+" m²/s²", name:"0–1km SRH"},
-      cape:  {...scoreCAPE(cape), val:cape,     label:Math.round(cape)+" J/kg", name:"MLCAPE"},
-      shear: {...scoreShear(shear), val:shear,  label:Math.round(shear)+" kt",  name:"0–6km Shear"},
-      ehi:   {...scoreEHI(ehi),   val:ehi,      label:ehi.toFixed(1),           name:"EHI"},
+      cape:  {...scoreCAPE(cape), val:cape,     label:Math.round(cape)+" J/kg",  name:"MLCAPE"},
+      shear: {...scoreShear(shear), val:shear,  label:Math.round(shear)+" kt",   name:"0–6km Shear"},
+      ehi:   {...scoreEHI(ehi),   val:ehi,      label:ehi.toFixed(1),            name:"EHI"},
       uh:    {...scoreUH(uhProxy), val:uhProxy, label:Math.round(uhProxy)+" m²/s²", name:"UH"}
     };
 
     const s = compositeScore(params);
-    if (s > bestScore) {
-      bestScore = s;
-      bestParams = params;
-      bestIdx = i;
-      bestTimeLabel = `${hour.toString().padStart(2,'0')}Z`;
-    }
+    if (s > bestScore) { bestScore=s; bestParams=params; bestUTCHour=hour; bestIdx=i; }
   });
 
   if (!bestParams) return null;
 
-  const peakHour = parseInt(times[bestIdx].slice(11,13));
-  const startHour = Math.max(peakHour - 2, 12);
-  const endHour   = Math.min(peakHour + 2, 3);
+  // Build local time strings for the target area timezone
+  const peakLocal = utcHourToLocal(bestUTCHour, targetTz);
+  const startLocal = utcHourToLocal(Math.max(bestUTCHour-2, 12), targetTz);
+  const endLocal   = utcHourToLocal(Math.min(bestUTCHour+2, 27)%24, targetTz);
+  const abbr = tzAbbr(targetTz);
 
   return {
     score: parseFloat(bestScore.toFixed(1)),
     params: bestParams,
     window: {
-      start: `${startHour.toString().padStart(2,'0')}Z`,
-      peak:  bestTimeLabel,
-      end:   `${(peakHour+2).toString().padStart(2,'0')}Z`
+      start:    startLocal,
+      peak:     peakLocal,
+      end:      endLocal,
+      startUTC: `${Math.max(bestUTCHour-2,12).toString().padStart(2,'0')}Z`,
+      peakUTC:  `${bestUTCHour.toString().padStart(2,'0')}Z`,
+      endUTC:   `${Math.min(bestUTCHour+2,27).toString().padStart(2,'0')}Z`,
+      tzAbbr:   abbr,
+      timezone: targetTz
     }
   };
 }
@@ -239,24 +259,27 @@ exports.handler = async function(event) {
 
     if (!spcPoints.length) return {
       statusCode:200, headers,
-      body: JSON.stringify({hasRisk:false, day, targets:[], spc:{maxProb,zones}, message:"SPC risk exists but doesn't overlap your 800-mile radius"})
+      body: JSON.stringify({hasRisk:false, day, targets:[], spc:{maxProb,zones},
+        message:"SPC risk exists but doesn't overlap your 800-mile radius"})
     };
 
     // 3. Sample up to 15 points
     const stride = Math.max(1, Math.floor(spcPoints.length/15));
     const sample = spcPoints.filter((_,i)=>i%stride===0).slice(0,15);
 
-    // 4. Fetch Open-Meteo for each point and score
+    // 4. Score each point — get timezone per target area
     const results = [];
     for (const pt of sample) {
-      const hourly = await fetchOpenMeteo(pt.lat, pt.lon, day);
+      // Get timezone for this target location
+      const targetTz = await getTimezone(pt.lat, pt.lon);
+      const hourly = await fetchOpenMeteo(pt.lat, pt.lon, day, targetTz);
       if (!hourly) continue;
 
-      const best = scoreBestWindow(hourly, day);
+      const best = scoreBestWindow(hourly, day, targetTz);
       if (!best || best.score === 0) continue;
 
       const spcProb = features.reduce((b,f)=>
-        pointInFeature(pt.lat,pt.lon,f) ? Math.max(b,parseFloat(f.properties?.DN||0)) : b, 0);
+        pointInFeature(pt.lat,pt.lon,f)?Math.max(b,parseFloat(f.properties?.DN||0)):b, 0);
 
       results.push({
         lat: pt.lat, lon: pt.lon, dist: pt.dist,
@@ -270,13 +293,13 @@ exports.handler = async function(event) {
 
     if (!results.length) return {
       statusCode:200, headers,
-      body: JSON.stringify({hasRisk:true, day, spc:{maxProb,zones}, targets:[], message:"SPC risk found but model parameters too weak to score targets"})
+      body: JSON.stringify({hasRisk:true, day, spc:{maxProb,zones}, targets:[],
+        message:"SPC risk found but model parameters too weak to score targets"})
     };
 
     // 5. Sort and geocode top 5
     results.sort((a,b)=>b.score-a.score);
     const top5 = results.slice(0,5);
-
     for (let i=0; i<top5.length; i++) {
       const geo = await geocode(top5[i].lat, top5[i].lon);
       top5[i].county = geo.county;
