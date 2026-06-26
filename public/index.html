@@ -1,1 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="605 Targets">
+  <meta name="theme-color" content="#cc2200">
+  <title>605 Chaser — Tornado Target Finder</title>
+  <link rel="manifest" href="/manifest.json">
+  <style>
+    :root {
+      --bg: #0a0a0b;
+      --surface: #141416;
+      --card: #1c1c1f;
+      --border: rgba(255,255,255,0.08);
+      --border-strong: rgba(255,255,255,0.16);
+      --text: #f0f0f0;
+      --text-2: #a0a0a8;
+      --text-3: #606068;
+      --red: #cc2200;
+      --radius: 12px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: env(safe-area-inset-bottom); }
+    .header { position: sticky; top: 0; z-index: 10; background: rgba(10,10,11,0.92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 0.5px solid var(--border); padding: max(env(safe-area-inset-top), 12px) 16px 12px; }
+    .header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand-mark { width: 34px; height: 34px; border-radius: 9px; background: var(--red); display: flex; align-items: center; justify-content: center; }
+    .brand-mark svg { width: 18px; height: 18px; fill: #fff; }
+    .brand-name { font-size: 15px; font-weight: 600; color: var(--text); }
+    .brand-sub { font-size: 11px; color: var(--text-3); letter-spacing: 0.04em; text-transform: uppercase; }
+    .day-toggle { display: flex; background: var(--surface); border-radius: 8px; padding: 2px; border: 0.5px solid var(--border); }
+    .day-btn { padding: 5px 16px; font-size: 13px; font-weight: 500; border-radius: 6px; border: none; background: transparent; color: var(--text-3); cursor: pointer; }
+    .day-btn.active { background: var(--card); color: var(--text); border: 0.5px solid var(--border-strong); }
+    .loc-row { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-2); }
+    .loc-val { font-weight: 500; color: var(--text); }
+    .refresh-btn { margin-left: auto; background: none; border: none; color: var(--text-3); cursor: pointer; padding: 4px; font-size: 18px; }
+    .status-wrap { padding: 10px 16px 0; }
+    .status-pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+    .status-pill.loading { background: rgba(153,136,0,0.15); color: #ddbb00; }
+    .status-pill.live { background: rgba(58,138,0,0.15); color: #55cc00; }
+    .status-pill.no-risk { background: var(--surface); color: var(--text-3); border: 0.5px solid var(--border); }
+    .status-pill.error { background: rgba(204,34,0,0.15); color: #ff5533; }
+    .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .dot.pulse { animation: dotpulse 1.4s infinite; }
+    @keyframes dotpulse { 0%,100%{opacity:1} 50%{opacity:0.25} }
+    .spc-card { margin: 12px 16px 0; background: var(--surface); border-radius: var(--radius); border: 0.5px solid var(--border); padding: 10px 12px; }
+    .spc-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+    .spc-eyebrow { font-size: 10px; font-weight: 600; color: var(--text-3); letter-spacing: 0.06em; text-transform: uppercase; }
+    .risk-pill { padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+    .risk-2 { background: rgba(200,166,0,0.2); color: #ddbb00; }
+    .risk-5 { background: rgba(220,100,0,0.2); color: #ff7722; }
+    .risk-10 { background: rgba(220,0,0,0.2); color: #ff3311; }
+    .risk-15 { background: rgba(180,0,220,0.2); color: #cc44ff; }
+    .spc-zones { font-size: 12px; color: var(--text-2); line-height: 1.5; }
+    .run-tag { margin: 8px 16px 0; font-size: 11px; color: var(--text-3); }
+    .section-lbl { padding: 14px 16px 6px; font-size: 11px; font-weight: 600; color: var(--text-3); letter-spacing: 0.06em; text-transform: uppercase; }
+    .target-card { margin: 0 16px 10px; background: var(--card); border-radius: var(--radius); border: 0.5px solid var(--border); overflow: hidden; cursor: pointer; }
+    .target-card:active { opacity: 0.85; }
+    .target-card.top { border-color: var(--red); border-width: 1px; }
+    .card-head { padding: 12px 14px 8px; display: flex; align-items: flex-start; justify-content: space-between; }
+    .card-rank { font-size: 10px; font-weight: 600; color: var(--text-3); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 2px; }
+    .card-rank.top { color: var(--red); }
+    .card-county { font-size: 17px; font-weight: 600; color: var(--text); letter-spacing: -0.3px; }
+    .card-state { font-size: 12px; color: var(--text-2); margin-top: 1px; }
+    .score-ring { width: 46px; height: 46px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1.5px solid; flex-shrink: 0; }
+    .score-ring.high { border-color: #ff4422; color: #ff4422; }
+    .score-ring.mod { border-color: #ff8833; color: #ff8833; }
+    .score-ring.marg { border-color: #ddbb00; color: #ddbb00; }
+    .score-n { font-size: 16px; font-weight: 600; line-height: 1; }
+    .score-l { font-size: 8px; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; opacity: 0.7; }
+    .card-window { padding: 0 14px 8px; font-size: 12px; color: var(--text-2); }
+    .window-strong { color: var(--text); font-weight: 500; }
+    .params { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; padding: 0 14px 12px; }
+    .pbadge { padding: 6px 8px; border-radius: 8px; }
+    .pname { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px; }
+    .pval { font-size: 13px; font-weight: 600; line-height: 1; }
+    .ptier { font-size: 9px; margin-top: 3px; opacity: 0.75; }
+    .t-sig { background: rgba(200,0,0,0.15); }
+    .t-sig .pname,.t-sig .ptier { color: #ff6655; }
+    .t-sig .pval { color: #ff3322; }
+    .t-vs { background: rgba(200,100,0,0.15); }
+    .t-vs .pname,.t-vs .ptier { color: #ffaa55; }
+    .t-vs .pval { color: #ff8800; }
+    .t-str { background: rgba(60,130,0,0.15); }
+    .t-str .pname,.t-str .ptier { color: #88cc44; }
+    .t-str .pval { color: #66aa00; }
+    .t-marg { background: rgba(150,130,0,0.12); }
+    .t-marg .pname,.t-marg .ptier { color: #ccbb44; }
+    .t-marg .pval { color: #aaaa00; }
+    .t-weak { background: rgba(255,255,255,0.04); }
+    .t-weak .pname,.t-weak .pval,.t-weak .ptier { color: var(--text-3); }
+    .card-foot { border-top: 0.5px solid var(--border); padding: 8px 14px; display: flex; align-items: center; justify-content: space-between; }
+    .spc-inline { font-size: 11px; color: var(--text-3); }
+    .spc-inline b { color: var(--text-2); }
+    .chase-link { font-size: 11px; color: #4488ff; }
+    .empty { margin: 32px 16px; padding: 32px 16px; text-align: center; background: var(--surface); border-radius: var(--radius); border: 0.5px solid var(--border); }
+    .empty-icon { font-size: 36px; margin-bottom: 12px; }
+    .empty-title { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+    .empty-body { font-size: 13px; color: var(--text-2); line-height: 1.55; }
+    .skel { background: var(--surface); border-radius: 10px; margin: 12px 16px 8px; animation: skelflash 1.2s ease-in-out infinite; }
+    @keyframes skelflash { 0%,100%{opacity:0.5} 50%{opacity:1} }
+    .disc { margin: 4px 16px 24px; padding: 10px 12px; background: var(--surface); border-radius: 8px; border-left: 2px solid var(--border-strong); }
+    .disc p { font-size: 10px; color: var(--text-3); line-height: 1.6; }
+  </style>
+</head>
+<body>
+<div class="header">
+  <div class="header-row">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24"><path d="M12 2C7.6 2 4 5.8 4 10.2c0 6.5 8 11.8 8 11.8s8-5.3 8-11.8C20 5.8 16.4 2 12 2zm0 11a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/></svg>
+      </div>
+      <div>
+        <div class="brand-name">605 Chaser</div>
+        <div class="brand-sub">Tornado Target Finder</div>
+      </div>
+    </div>
+    <div class="day-toggle">
+      <button class="day-btn active" id="d1" onclick="setDay(1)">Day 1</button>
+      <button class="day-btn" id="d2" onclick="setDay(2)">Day 2</button>
+    </div>
+  </div>
+  <div class="loc-row">
+    📍 <span id="locDisplay"><span class="loc-val">Locating…</span></span>
+    <button class="refresh-btn" onclick="runAnalysis()">↻</button>
+  </div>
+</div>
 
+<div class="status-wrap">
+  <div class="status-pill loading" id="statusPill">
+    <div class="dot pulse"></div>
+    <span id="statusTxt">Starting up…</span>
+  </div>
+</div>
+
+<div id="main"></div>
+
+<script>
+let currentDay = 1;
+let userLat = null;
+let userLon = null;
+
+function setStatus(type, txt) {
+  const pill = document.getElementById('statusPill');
+  pill.className = 'status-pill ' + type;
+  pill.innerHTML = '<div class="dot' + (type==='loading'?' pulse':'') + '"></div><span>' + txt + '</span>';
+}
+
+function riskClass(p) {
+  if (p >= 15) return 'risk-15';
+  if (p >= 10) return 'risk-10';
+  if (p >= 5) return 'risk-5';
+  return 'risk-2';
+}
+
+function tierClass(t) {
+  return {sig:'t-sig',vs:'t-vs',str:'t-str',marg:'t-marg',weak:'t-weak'}[t]||'t-weak';
+}
+
+function renderSkeletons() {
+  document.getElementById('main').innerHTML =
+    '<div class="skel" style="height:68px"></div>' +
+    '<div class="skel" style="height:200px"></div>' +
+    '<div class="skel" style="height:185px"></div>' +
+    '<div class="skel" style="height:175px"></div>';
+}
+
+function renderNoRisk(day, msg) {
+  document.getElementById('main').innerHTML =
+    '<div class="empty"><div class="empty-icon">🌥️</div>' +
+    '<div class="empty-title">No SPC tornado risk nearby</div>' +
+    '<div class="empty-body">' + (msg || 'SPC Day ' + day + ' outlook shows no tornado probability ≥ 2% within 300 miles.') + '</div></div>';
+}
+
+function renderError(msg) {
+  document.getElementById('main').innerHTML =
+    '<div class="empty"><div class="empty-icon">📡</div>' +
+    '<div class="empty-title">Could not load data</div>' +
+    '<div class="empty-body">' + msg + '<br><br>Tap ↻ to retry.</div></div>';
+}
+
+function renderResults(data) {
+  const { spc, targets, day } = data;
+  let html = '<div class="spc-card"><div class="spc-top">' +
+    '<div class="spc-eyebrow">SPC Day ' + day + ' Tornado Outlook</div>' +
+    '<div class="risk-pill ' + riskClass(spc.maxProb) + '">' + spc.maxProb + '% max</div>' +
+    '</div><div class="spc-zones">' + spc.zones.slice(0,3).join(' · ') + '</div></div>';
+
+  const h = new Date().getUTCHours();
+  const run = h < 9 ? '06Z' : h < 15 ? '12Z' : '18Z';
+  html += '<div class="run-tag">NAM 3km · ' + (day===1 ? run + ' run' : '48hr forecast') + '</div>';
+  html += '<div class="section-lbl">Ranked targets · ' + targets.length + ' within 300 mi</div>';
+
+  targets.forEach((t, i) => {
+    const isTop = i === 0;
+    const ring = t.tier==='high' ? 'high' : t.tier==='mod' ? 'mod' : 'marg';
+    const rankLbl = isTop ? '▲ Top target' : '#' + t.rank;
+    let params = '';
+    ['stp','srh','cape','shear','ehi','uh'].forEach(k => {
+      const p = t.params[k];
+      if (!p) return;
+      params += '<div class="pbadge ' + tierClass(p.tier) + '">' +
+        '<div class="pname">' + p.name + '</div>' +
+        '<div class="pval">' + p.label + '</div>' +
+        '<div class="ptier">' + p.tierName + '</div></div>';
+    });
+    html += '<div class="target-card' + (isTop?' top':'') + '" onclick="openBrief(\'' + t.county + '\',\'' + t.state + '\')">' +
+      '<div class="card-head"><div>' +
+      '<div class="card-rank' + (isTop?' top':'') + '">' + rankLbl + '</div>' +
+      '<div class="card-county">' + (t.county||t.lat.toFixed(2)+'°N') + '</div>' +
+      '<div class="card-state">' + t.state + (t.dist?' · '+t.dist+' mi':'') + '</div>' +
+      '</div><div class="score-ring ' + ring + '"><div class="score-n">' + t.score.toFixed(1) + '</div><div class="score-l">score</div></div></div>' +
+      '<div class="card-window">Best window <span class="window-strong">' + t.window.start + '–' + t.window.end + '</span> · peak <span class="window-strong">' + t.window.peak + '</span></div>' +
+      '<div class="params">' + params + '</div>' +
+      '<div class="card-foot"><div class="spc-inline">SPC: <b>' + t.spc_prob + '% tornado</b></div>' +
+      '<div class="chase-link">Chase brief →</div></div></div>';
+  });
+
+  html += '<div class="disc"><p>Parameters from NAM 3km via IEM. SPC outlook cross-referenced from official Day ' + day + ' GeoJSON. UH is a model diagnostic — verify with live radar on chase day.</p></div>';
+  document.getElementById('main').innerHTML = html;
+}
+
+function openBrief(county, state) {
+  window.open('https://www.spc.noaa.gov/exper/mesoanalysis/s2/stp/stp_sf.gif', '_blank');
+}
+
+function setDay(d) {
+  currentDay = d;
+  document.getElementById('d1').classList.toggle('active', d===1);
+  document.getElementById('d2').classList.toggle('active', d===2);
+  runAnalysis();
+}
+
+function getLocation() {
+  return new Promise(resolve => {
+    if (!navigator.geolocation) { resolve({lat:43.55,lon:-96.7}); return; }
+    navigator.geolocation.getCurrentPosition(
+      p => resolve({lat:parseFloat(p.coords.latitude.toFixed(4)), lon:parseFloat(p.coords.longitude.toFixed(4))}),
+      () => resolve({lat:43.55,lon:-96.7}),
+      {timeout:8000}
+    );
+  });
+}
+
+async function runAnalysis() {
+  renderSkeletons();
+  setStatus('loading', 'Getting your location…');
+  try {
+    const loc = await getLocation();
+    userLat = loc.lat; userLon = loc.lon;
+    document.getElementById('locDisplay').innerHTML = '<span class="loc-val">' + loc.lat.toFixed(3) + '°N, ' + Math.abs(loc.lon).toFixed(3) + '°W</span> · 300 mi';
+    setStatus('loading', 'Checking SPC Day ' + currentDay + '…');
+    const resp = await fetch('/.netlify/functions/targets?lat=' + userLat + '&lon=' + userLon + '&day=' + currentDay + '&radius=300');
+    if (!resp.ok) throw new Error('API error ' + resp.status);
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error);
+    if (!data.hasRisk) {
+      setStatus('no-risk', 'No SPC tornado risk within 300 miles');
+      renderNoRisk(currentDay, data.message);
+      return;
+    }
+    setStatus('live', 'Day ' + currentDay + ' · ' + data.targets.length + ' targets · SPC ' + data.spc.maxProb + '% max');
+    renderResults(data);
+  } catch(err) {
+    setStatus('error', 'Failed — tap ↻ to retry');
+    renderError(err.message||'Unknown error');
+  }
+}
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(()=>{}));
+}
+
+runAnalysis();
+</script>
+</body>
+</html>
