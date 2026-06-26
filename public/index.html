@@ -172,7 +172,7 @@ function renderNoRisk(day, msg) {
   document.getElementById('main').innerHTML =
     '<div class="empty"><div class="empty-icon">🌥️</div>' +
     '<div class="empty-title">No SPC tornado risk nearby</div>' +
-    '<div class="empty-body">' + (msg || 'SPC Day ' + day + ' outlook shows no tornado probability ≥ 2% within 300 miles.') + '</div></div>';
+    '<div class="empty-body">' + (msg || 'SPC Day ' + day + ' outlook shows no tornado probability ≥ 2% within 800 miles.') + '</div></div>';
 }
 
 function renderError(msg) {
@@ -192,7 +192,7 @@ function renderResults(data) {
   const h = new Date().getUTCHours();
   const run = h < 9 ? '06Z' : h < 15 ? '12Z' : '18Z';
   html += '<div class="run-tag">NAM 3km · ' + (day===1 ? run + ' run' : '48hr forecast') + '</div>';
-  html += '<div class="section-lbl">Ranked targets · ' + targets.length + ' within 300 mi</div>';
+  html += '<div class="section-lbl">Ranked targets · ' + targets.length + ' within 800 mi</div>';
 
   targets.forEach((t, i) => {
     const isTop = i === 0;
@@ -251,14 +251,14 @@ async function runAnalysis() {
   try {
     const loc = await getLocation();
     userLat = loc.lat; userLon = loc.lon;
-    document.getElementById('locDisplay').innerHTML = '<span class="loc-val">' + loc.lat.toFixed(3) + '°N, ' + Math.abs(loc.lon).toFixed(3) + '°W</span> · 300 mi';
+    document.getElementById('locDisplay').innerHTML = '<span class="loc-val">' + loc.lat.toFixed(3) + '°N, ' + Math.abs(loc.lon).toFixed(3) + '°W</span> · 800 mi';
     setStatus('loading', 'Checking SPC Day ' + currentDay + '…');
-    const resp = await fetch('/.netlify/functions/targets?lat=' + userLat + '&lon=' + userLon + '&day=' + currentDay + '&radius=300');
+    const resp = await fetch('/.netlify/functions/targets?lat=' + userLat + '&lon=' + userLon + '&day=' + currentDay + '&radius=800');
     if (!resp.ok) throw new Error('API error ' + resp.status);
     const data = await resp.json();
     if (data.error) throw new Error(data.error);
     if (!data.hasRisk) {
-      setStatus('no-risk', 'No SPC tornado risk within 300 miles');
+      setStatus('no-risk', 'No SPC tornado risk within 800 miles');
       renderNoRisk(currentDay, data.message);
       return;
     }
