@@ -61,7 +61,7 @@ function generateGrid(lat, lon, radiusMiles) {
 function pointInPolygon(lat, lon, coords) {
   let inside = false;
   for (let i=0,j=coords.length-1;i<coords.length;j=i++) {
-    const xi=coords[i][1],yi=coords[i][0],xj=coords[j][1],yj=coords[j][0];
+    const xi=coords[i][0],yi=coords[i][1],xj=coords[j][0],yj=coords[j][1];
     if (((yi>lat)!==(yj>lat))&&(lon<(xj-xi)*(lat-yi)/(yj-yi)+xi)) inside=!inside;
   }
   return inside;
