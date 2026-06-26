@@ -44,8 +44,8 @@ function compositeScore(p) {
 function generateGrid(lat, lon, radiusMiles) {
   const points = [];
   const R = 3958.8;
-  const latStep = (50/R)*(180/Math.PI);
-  const lonStep = (50/R)*(180/Math.PI)/Math.cos(lat*Math.PI/180);
+  const latStep = (55/R)*(180/Math.PI);
+  const lonStep = (55/R)*(180/Math.PI)/Math.cos(lat*Math.PI/180);
   for (let dlat = -radiusMiles/69; dlat <= radiusMiles/69; dlat += latStep) {
     for (let dlon = -radiusMiles/55; dlon <= radiusMiles/55; dlon += lonStep) {
       const glat = lat+dlat, glon = lon+dlon;
@@ -115,7 +115,7 @@ exports.handler = async function(event) {
   try {
     const p = event.queryStringParameters||{};
     const lat=parseFloat(p.lat||"43.55"), lon=parseFloat(p.lon||"-96.7");
-    const day=parseInt(p.day||"1"), radius=parseInt(p.radius||"300");
+    const day=parseInt(p.day||"1"), radius=parseInt(p.radius||"800");
 
     const spcUrl = day===1
       ? "https://www.spc.noaa.gov/products/outlook/day1otlk_torn.nolyr.geojson"
@@ -132,10 +132,10 @@ exports.handler = async function(event) {
     const grid = generateGrid(lat,lon,radius);
     const spcPoints = grid.filter(pt=>features.some(f=>pointInFeature(pt.lat,pt.lon,f)));
 
-    if (!spcPoints.length) return {statusCode:200,headers,body:JSON.stringify({hasRisk:false,day,targets:[],spc:{maxProb,zones},message:"SPC risk exists but doesn't overlap your 300-mile radius"})};
+    if (!spcPoints.length) return {statusCode:200,headers,body:JSON.stringify({hasRisk:false,day,targets:[],spc:{maxProb,zones},message:"SPC risk exists but doesn't overlap your 800-mile radius"})};
 
-    const stride=Math.max(1,Math.floor(spcPoints.length/12));
-    const sample=spcPoints.filter((_,i)=>i%stride===0).slice(0,12);
+    const stride=Math.max(1,Math.floor(spcPoints.length/15));
+    const sample=spcPoints.filter((_,i)=>i%stride===0).slice(0,15);
     const times=["15Z","18Z","21Z","00Z"];
     const now=new Date();
     const base=new Date(now);
@@ -189,4 +189,3 @@ exports.handler = async function(event) {
     return {statusCode:500,headers,body:JSON.stringify({error:err.message})};
   }
 };
-
